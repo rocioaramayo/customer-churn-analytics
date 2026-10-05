@@ -41,7 +41,7 @@ El CLV realizado de los clientes activos está censurado a la fecha de corte: mu
 - Medidas DAX y especificación del dashboard ejecutivo.
 - Informe de hallazgos y recomendaciones.
 
-## Estructura
+## Estructura principal
 
 ```text
 customer-churn-analytics/
@@ -60,6 +60,8 @@ customer-churn-analytics/
 └── src/
     └── generate_stage1.py
 ```
+
+La raíz conserva además los archivos del primer prototipo relacional (`dim_*`, `fact_*`, `01_schema.sql`, `02_analysis_queries.sql` y `generate_data.py`) para documentar la evolución del proyecto.
 
 ## Reproducir el proyecto
 
