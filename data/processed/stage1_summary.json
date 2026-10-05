@@ -1,0 +1,6 @@
+{
+  "customers": 6000,
+  "churned_customers": 1862,
+  "global_churn_rate": 0.310333,
+  "annualized_revenue_lost_usd": 1441976.16
+}

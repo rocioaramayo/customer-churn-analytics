@@ -1,0 +1,36 @@
+Clientes =
+DISTINCTCOUNT(Customers[customer_id])
+
+Clientes dados de baja =
+CALCULATE(
+    [Clientes],
+    Customers[churn_flag] = 1
+)
+
+Tasa de churn global =
+DIVIDE([Clientes dados de baja], [Clientes])
+
+CLV realizado promedio =
+AVERAGE(Customers[clv_realized_usd])
+
+CLV promedio bajas =
+CALCULATE(
+    [CLV realizado promedio],
+    Customers[churn_flag] = 1
+)
+
+CLV promedio activos =
+CALCULATE(
+    [CLV realizado promedio],
+    Customers[churn_flag] = 0
+)
+
+Ingreso anualizado perdido =
+SUM(Customers[annualized_revenue_lost_usd])
+
+Tasa de churn mensual =
+DIVIDE(
+    SUM(MonthlyKPI[churned_customers]),
+    SUM(MonthlyKPI[active_start])
+)
+
