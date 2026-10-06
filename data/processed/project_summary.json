@@ -1,0 +1,12 @@
+{
+  "cutoff_date": "2025-12-31",
+  "churn_definition_days": 120,
+  "customers": 8000,
+  "orders": 17620,
+  "order_items": 37851,
+  "churned_customers": 2425,
+  "global_churn_rate": 0.3031,
+  "repeat_purchase_rate": 0.5536,
+  "net_revenue_usd": 4554220.06,
+  "annual_revenue_at_risk_usd": 9761233.75
+}

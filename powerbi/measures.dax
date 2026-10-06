@@ -1,36 +1,68 @@
 Clientes =
-DISTINCTCOUNT(Customers[customer_id])
+DISTINCTCOUNT(FactCustomerSnapshot[customer_id])
 
-Clientes dados de baja =
-CALCULATE(
-    [Clientes],
-    Customers[churn_flag] = 1
-)
+Clientes activos =
+CALCULATE([Clientes], FactCustomerSnapshot[customer_status] = "Activo")
 
-Tasa de churn global =
-DIVIDE([Clientes dados de baja], [Clientes])
+Clientes en riesgo =
+CALCULATE([Clientes], FactCustomerSnapshot[customer_status] = "En riesgo")
+
+Clientes churn =
+CALCULATE([Clientes], FactCustomerSnapshot[churn_flag] = 1)
+
+Tasa de churn =
+DIVIDE([Clientes churn], [Clientes])
+
+Clientes recurrentes =
+CALCULATE([Clientes], FactCustomerSnapshot[repeat_customer_flag] = 1)
+
+Tasa de recompra =
+DIVIDE([Clientes recurrentes], [Clientes])
+
+Pedidos =
+DISTINCTCOUNT(FactOrders[order_id])
+
+Unidades vendidas =
+SUM(FactOrderItems[quantity])
+
+Facturación neta =
+SUM(FactOrders[net_revenue_usd])
+
+Margen bruto =
+SUM(FactOrders[gross_margin_usd])
+
+Margen % =
+DIVIDE([Margen bruto], [Facturación neta])
+
+Ticket promedio =
+DIVIDE([Facturación neta], [Pedidos])
 
 CLV realizado promedio =
-AVERAGE(Customers[clv_realized_usd])
+AVERAGE(FactCustomerSnapshot[net_revenue_usd])
 
-CLV promedio bajas =
-CALCULATE(
-    [CLV realizado promedio],
-    Customers[churn_flag] = 1
-)
+Ingreso anual en riesgo =
+SUM(FactCustomerSnapshot[annual_revenue_at_risk_usd])
 
-CLV promedio activos =
-CALCULATE(
-    [CLV realizado promedio],
-    Customers[churn_flag] = 0
-)
+Días desde última compra =
+AVERAGE(FactCustomerSnapshot[days_since_last_order])
 
-Ingreso anualizado perdido =
-SUM(Customers[annualized_revenue_lost_usd])
+Devoluciones =
+DISTINCTCOUNT(FactReturns[return_id])
 
-Tasa de churn mensual =
+Tasa de devolución =
+DIVIDE(SUM(FactOrderItems[returned_quantity]), [Unidades vendidas])
+
+Tickets de soporte =
+DISTINCTCOUNT(FactSupport[ticket_id])
+
+Churn mensual =
 DIVIDE(
-    SUM(MonthlyKPI[churned_customers]),
-    SUM(MonthlyKPI[active_start])
+    SUM(FactMonthlyKPI[churned_customers]),
+    SUM(FactMonthlyKPI[active_customers])
 )
 
+Facturación mes anterior =
+CALCULATE([Facturación neta], DATEADD(DimDate[date], -1, MONTH))
+
+Variación mensual facturación % =
+DIVIDE([Facturación neta] - [Facturación mes anterior], [Facturación mes anterior])

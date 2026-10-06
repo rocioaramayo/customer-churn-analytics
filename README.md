@@ -1,47 +1,83 @@
-# Customer Churn Analytics | Retención y valor del cliente
+# E-commerce Customer Retention Analytics
 
-Proyecto de portfolio orientado a detectar pérdida de clientes y traducirla en decisiones de negocio. Esta primera etapa aborda el problema desde **Data Analytics y Business Intelligence** mediante Python, SQL, Power BI y DAX.
+Proyecto de portfolio que analiza la retención y pérdida de clientes de un e-commerce mediante **Python, SQL, modelado estrella, Power BI y DAX**.
 
-El dataset es simulado, reproducible y representa 6.000 clientes de un servicio por suscripción entre enero de 2023 y diciembre de 2025. No contiene información personal real.
+El dataset es simulado y reproducible. Representa clientes, pedidos, productos, devoluciones y contactos con soporte entre enero de 2023 y diciembre de 2025. No contiene información personal real.
+
+## Problema de negocio
+
+En e-commerce no existe una cancelación explícita. Para este caso se utiliza una regla observable y configurable:
+
+- **Activo:** compró en los últimos 60 días.
+- **En riesgo:** lleva entre 61 y 120 días sin comprar.
+- **Churn:** lleva más de 120 días sin comprar.
+
+La fecha de corte es **2025-12-31**. El objetivo es detectar clientes que dejan de comprar, cuantificar el ingreso en riesgo y priorizar campañas de recuperación.
 
 ## Resumen ejecutivo
 
 | Indicador | Resultado |
 |---|---:|
-| Clientes analizados | 6.000 |
-| Clientes que cancelaron | 1.862 |
-| Tasa de churn global | 31,03 % |
-| Ingreso anualizado en riesgo | USD 1.441.976,16 |
+| Clientes | 8.000 |
+| Pedidos | 17.620 |
+| Ítems vendidos | 37.851 |
+| Clientes churn | 2.425 |
+| Tasa de churn | 30,3 % |
+| Tasa de recompra | 55,4 % |
+| Facturación neta observada | USD 4.554.220 |
+| Ingreso anual estimado en riesgo | USD 9.761.234 |
 
-El objetivo no es mostrar solamente una tasa de churn, sino identificar **qué segmentos se van, cuánto valor económico se pierde y dónde conviene priorizar acciones de retención**.
+## Preguntas respondidas
 
-## Preguntas de negocio
+- ¿Cuál es la tasa de churn y de recompra?
+- ¿Cuánto ingreso anual se encuentra en riesgo?
+- ¿Qué segmentos RFM necesitan una campaña de recuperación?
+- ¿Qué categorías, canales y regiones generan más valor?
+- ¿Existe relación entre devoluciones, soporte y churn?
+- ¿Qué clientes conviene priorizar según valor e inactividad?
 
-- ¿Cuál es la tasa de churn global y cómo evoluciona mensualmente?
-- ¿Qué valor económico se pierde cuando un cliente cancela?
-- ¿Qué segmentos presentan mayor riesgo?
-- ¿Cómo cambian los resultados según contrato, método de pago, antigüedad, producto y tickets de soporte?
+## Modelo de datos
 
-## KPIs
+El proyecto utiliza un modelo estrella con varias tablas de hechos:
 
-| KPI | Definición |
-|---|---|
-| Tasa de churn global | Clientes dados de baja / clientes observados |
-| Tasa de churn mensual | Bajas del mes / clientes activos al inicio del mes |
-| CLV realizado | Cargo mensual × meses activos × (1 − descuento medio) |
-| Ingreso anualizado perdido | Suma del cargo mensual de los clientes dados de baja × 12 |
+```text
+DimCustomers ─────┬── FactOrders ─── FactOrderItems ─── DimProducts
+DimChannels ──────┤        │
+DimDate ──────────┘        ├── FactReturns
+                           └── FactSupport
 
-El CLV realizado de los clientes activos está censurado a la fecha de corte: muestra el valor acumulado hasta esa fecha, no todo su valor futuro.
+DimCustomers ───────── FactCustomerSnapshot
+DimDate ─────────────── FactMonthlyKPI
+```
 
-## Entregables
+### Dimensiones
 
-- Base analítica a nivel cliente y evolución mensual de churn.
-- Consultas SQL para KPIs y segmentación.
-- Libro Excel listo para importar en Power BI, con tablas `Customers` y `MonthlyKPI`.
-- Medidas DAX y especificación del dashboard ejecutivo.
-- Informe de hallazgos y recomendaciones.
+- `dim_customers`: región, segmento y canal de adquisición.
+- `dim_products`: producto, categoría, precio y costo.
+- `dim_channels`: web, aplicación móvil y marketplace.
+- `dim_date`: calendario completo para inteligencia de tiempo.
 
-## Estructura principal
+### Hechos
+
+- `fact_orders`: cabecera de pedidos, facturación, descuentos, costos y margen.
+- `fact_order_items`: productos y cantidades de cada pedido.
+- `fact_returns`: devoluciones, motivos y reembolsos.
+- `fact_support`: tickets, resolución y satisfacción.
+- `fact_customer_snapshot`: estado de retención, RFM, CLV observado e ingreso en riesgo.
+- `fact_monthly_kpis`: evolución mensual del negocio y del churn.
+
+## KPIs principales
+
+- Clientes activos, en riesgo y churn.
+- Tasa de churn y tasa de recompra.
+- Facturación neta, margen bruto y ticket promedio.
+- CLV realizado.
+- Ingreso anual estimado en riesgo.
+- Días desde la última compra.
+- Frecuencia de compra y segmentación RFM.
+- Tasa de devoluciones y volumen de soporte.
+
+## Estructura
 
 ```text
 customer-churn-analytics/
@@ -49,57 +85,54 @@ customer-churn-analytics/
 │   ├── raw/
 │   └── processed/
 ├── database/
+│   └── ecommerce_churn.db
+├── docs/
+│   └── data_dictionary.md
 ├── powerbi/
-│   ├── Customer_Churn_Etapa1.xlsx
 │   ├── dashboard_spec.md
 │   └── measures.dax
 ├── reports/
 │   └── insights.md
 ├── sql/
 │   └── analysis.sql
-└── src/
-    └── generate_stage1.py
+├── src/
+│   └── generate_ecommerce.py
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
-
-La raíz conserva además los archivos del primer prototipo relacional (`dim_*`, `fact_*`, `01_schema.sql`, `02_analysis_queries.sql` y `generate_data.py`) para documentar la evolución del proyecto.
 
 ## Reproducir el proyecto
 
 ```bash
 pip install -r requirements.txt
-python src/generate_stage1.py
+python src/generate_ecommerce.py
 ```
 
-El script crea:
+Los archivos listos para Power BI se generan en `data/processed/`. La base SQLite se genera en `database/ecommerce_churn.db`.
 
-- `data/raw/customer_churn_raw.csv`
-- `data/processed/customer_churn_analysis.csv`
-- `data/processed/monthly_churn_kpis.csv`
-- `database/customer_churn.db`
-- `reports/insights.md`
+## Construir el Power BI
 
-## Power BI
+Seguir [`powerbi/dashboard_spec.md`](powerbi/dashboard_spec.md). Allí están:
 
-La forma más rápida es importar `powerbi/Customer_Churn_Etapa1.xlsx`, que contiene las tablas `Customers` y `MonthlyKPI`. También se pueden importar directamente:
+1. Los CSV que se deben importar.
+2. Los nombres recomendados para las tablas.
+3. Todas las relaciones del modelo.
+4. Las páginas y visualizaciones sugeridas.
+5. El formato de las medidas.
 
-- `data/processed/customer_churn_analysis.csv`
-- `data/processed/monthly_churn_kpis.csv`
+Las medidas listas para copiar están en [`powerbi/measures.dax`](powerbi/measures.dax).
 
-El archivo `powerbi/measures.dax` contiene las medidas del modelo y `powerbi/dashboard_spec.md` define la página ejecutiva, los filtros y las visualizaciones.
+El detalle de tablas y campos está en [`docs/data_dictionary.md`](docs/data_dictionary.md).
 
-### Diseño del dashboard
+## SQL
 
-- Tarjetas: clientes, bajas, churn global, ingreso anualizado perdido y CLV.
-- Línea: evolución mensual de la tasa de churn.
-- Barras: churn por contrato y tickets de soporte.
-- Barras: ingreso perdido por categoría de servicio.
-- Matriz: contrato por método de pago.
-- Segmentadores: contrato, método de pago, antigüedad, categoría, segmento y región.
-
-## Próxima etapa: Data Science
-
-La segunda etapa incorporará un modelo predictivo explicable, priorizando **recall** para detectar clientes con riesgo de baja, junto con un score de riesgo y recomendaciones accionables para el equipo de retención.
+[`sql/analysis.sql`](sql/analysis.sql) incluye consultas para KPIs ejecutivos, evolución mensual, RFM, categorías, devoluciones, soporte y una lista priorizada de clientes para recuperación.
 
 ## Tecnologías
 
-Python · pandas · NumPy · SQL · SQLite · Power BI · DAX
+Python · pandas · NumPy · SQL · SQLite · Power BI · DAX · Modelado estrella · RFM
+
+## Próxima etapa
+
+Entrenar un modelo predictivo explicable que asigne un score de riesgo de churn y priorice clientes según probabilidad de abandono y valor económico.

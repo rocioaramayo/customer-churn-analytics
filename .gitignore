@@ -4,3 +4,4 @@ __pycache__/
 node_modules/
 tmp/
 *.inspect.ndjson
+powerbi/reference_previews/
